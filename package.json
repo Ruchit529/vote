@@ -1,0 +1,9 @@
+{
+  "name": "fast-vote-portal",
+  "version": "1.0.0",
+  "description": "High-Speed Direct API Voting Portal for College Ke Tashanbaaz",
+  "main": "api/stats.js",
+  "scripts": {
+    "start": "node web_gui.py"
+  }
+}
