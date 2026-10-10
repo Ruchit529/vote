@@ -2,6 +2,7 @@ const BASE_URL = "https://api.collegeketashanbaaz.in/v1";
 const SEASON_ID = "1684";
 const CITY_ID = 1693; // Jabalpur
 const TARGET_PARTICIPANT_ID = 132155; // Samya Jain
+const { recordVote } = require('./_db');
 
 const HEADERS = {
   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
@@ -42,9 +43,11 @@ export default async function handler(req, res) {
 
     const verifyData = await verifyResp.json();
     if (!verifyData || !verifyData.status) {
+      const errMsg = (verifyData && verifyData.message) || "Invalid OTP";
+      recordVote(phone, "Failed", errMsg);
       return res.status(200).json({
         success: false,
-        message: (verifyData && verifyData.message) || "Invalid OTP"
+        message: errMsg
       });
     }
 
@@ -77,17 +80,23 @@ export default async function handler(req, res) {
 
     const voteData = await voteResp.json();
     if (voteData && voteData.status) {
+      const successMsg = voteData.message || "Vote cast successfully!";
+      recordVote(phone, "Success", successMsg);
       return res.status(200).json({
         success: true,
-        message: voteData.message || "Vote cast successfully!"
+        message: successMsg
       });
     } else {
+      const failMsg = (voteData && voteData.message) || "Vote could not be registered.";
+      recordVote(phone, "Failed", failMsg);
       return res.status(200).json({
         success: false,
-        message: (voteData && voteData.message) || "Vote could not be registered."
+        message: failMsg
       });
     }
   } catch (error) {
+    recordVote(req.body?.phone || "Unknown", "Error", error.message);
     return res.status(500).json({ success: false, message: error.message });
   }
 }
+

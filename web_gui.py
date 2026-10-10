@@ -241,11 +241,79 @@ class FastVoteHandler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(HTML_PAGE.encode("utf-8"))
+import os
+
+VOTE_LOG_FILE = "vote_log.json"
+
+def load_vote_log():
+    if os.path.exists(VOTE_LOG_FILE):
+        try:
+            with open(VOTE_LOG_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"totalVotes": 0, "phoneVotes": {}, "history": []}
+
+def record_local_vote(phone, status="Success", message=""):
+    data = load_vote_log()
+    phone_key = str(phone or "Unknown").strip()
+    if phone_key not in data["phoneVotes"]:
+        data["phoneVotes"][phone_key] = {"count": 0, "lastVoted": None}
+    if status == "Success":
+        data["totalVotes"] += 1
+        data["phoneVotes"][phone_key]["count"] += 1
+    ts = time.strftime("%Y-%m-%d %H:%M:%S")
+    data["phoneVotes"][phone_key]["lastVoted"] = ts
+    data["history"].insert(0, {
+        "phone": phone_key,
+        "timestamp": ts,
+        "status": status,
+        "message": message
+    })
+    data["history"] = data["history"][:500]
+    try:
+        with open(VOTE_LOG_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass
+    return data
+
+class FastVoteHandler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/" or self.path == "/index.html":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(HTML_PAGE.encode("utf-8"))
+        elif self.path == "/admin" or self.path == "/admin.html":
+            admin_file = os.path.join(os.path.dirname(__file__), "public", "admin.html")
+            if os.path.exists(admin_file):
+                with open(admin_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.end_headers()
+                self.wfile.write(content.encode("utf-8"))
+            else:
+                self.send_response(404)
+                self.end_headers()
         elif self.path == "/api/stats":
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps(get_stats()).encode("utf-8"))
+        elif self.path == "/api/admin-stats":
+            log_data = load_vote_log()
+            resp = {
+                "success": True,
+                "totalVotesCast": log_data.get("totalVotes", 0),
+                "phoneVotes": log_data.get("phoneVotes", {}),
+                "history": log_data.get("history", [])
+            }
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(resp).encode("utf-8"))
         else:
             self.send_response(404)
             self.end_headers()
@@ -280,10 +348,12 @@ class FastVoteHandler(http.server.BaseHTTPRequestHandler):
             }, token=initial_token)
 
             if not verify_res.get("status"):
+                err_msg = verify_res.get("message", "Invalid OTP")
+                record_local_vote(phone, "Failed", err_msg)
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
-                self.wfile.write(json.dumps({"success": False, "message": verify_res.get("message", "Invalid OTP")}).encode("utf-8"))
+                self.wfile.write(json.dumps({"success": False, "message": err_msg}).encode("utf-8"))
                 return
 
             user_token = verify_res.get("payload", {}).get("token") or initial_token
@@ -299,19 +369,23 @@ class FastVoteHandler(http.server.BaseHTTPRequestHandler):
             vote_res = api_call(f"vote/{TARGET_PARTICIPANT_ID}", method="POST", token=user_token)
             if vote_res.get("status"):
                 msg = vote_res.get("message", "Vote cast successfully!")
+                record_local_vote(phone, "Success", msg)
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({"success": True, "message": msg}).encode("utf-8"))
             else:
+                fail_msg = vote_res.get("message", "Vote failed")
+                record_local_vote(phone, "Failed", fail_msg)
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
-                self.wfile.write(json.dumps({"success": False, "message": vote_res.get("message", "Vote failed")}).encode("utf-8"))
+                self.wfile.write(json.dumps({"success": False, "message": fail_msg}).encode("utf-8"))
 
         else:
             self.send_response(404)
             self.end_headers()
+
 
 if __name__ == "__main__":
     server = socketserver.TCPServer(("", PORT), FastVoteHandler)
