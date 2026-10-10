@@ -13,14 +13,18 @@
   p.sub { font-size: 13px; color: #9ca3af; margin-bottom: 20px; }
   .stat-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .stat-label { font-size: 13px; color: #94a3b8; font-weight: 500; }
-  .stat-val { font-size: 26px; font-weight: 800; color: #38bdf8; }
+  .stat-val { font-size: 28px; font-weight: 800; color: #38bdf8; transition: transform 0.2s; }
   .field { margin-bottom: 16px; }
   label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: 600; }
   input { width: 100%; background: #0f172a; border: 1.5px solid #334155; color: white; padding: 12px 14px; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.2s; }
   input:focus { border-color: #ec4899; box-shadow: 0 0 0 3px rgba(236,72,153,0.15); }
-  .btn { width: 100%; background: #ec4899; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 6px; }
+  .btn { width: 100%; background: #ec4899; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 6px; display: flex; justify-content: center; align-items: center; gap: 8px; }
   .btn:hover { background: #db2777; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .spinner { width: 18px; height: 18px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .progress-bar { height: 4px; width: 100%; background: #1e293b; border-radius: 2px; overflow: hidden; margin-top: 10px; display: none; }
+  .progress-inner { height: 100%; width: 0%; background: linear-gradient(90deg, #ec4899, #38bdf8); transition: width 0.4s ease; }
   .log-box { margin-top: 18px; background: #090d16; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; max-height: 140px; overflow-y: auto; color: #a5f3fc; }
   .step-hidden { display: none; }
 </style>
@@ -44,7 +48,9 @@
       <label>Mobile Number (10 Digits)</label>
       <input type="tel" id="phone" placeholder="Enter mobile number" maxlength="10" autofocus onkeyup="if(event.key==='Enter') sendOtp()">
     </div>
-    <button class="btn" id="btnSendOtp" onclick="sendOtp()">⚡ Send OTP Instantly</button>
+    <button class="btn" id="btnSendOtp" onclick="sendOtp()">
+      <span id="btnSendOtpText">⚡ Send OTP Instantly</span>
+    </button>
   </div>
 
   <div id="step2" class="step-hidden">
@@ -52,7 +58,12 @@
       <label>Enter 6-Digit OTP</label>
       <input type="text" id="otp" placeholder="123456" maxlength="6" style="letter-spacing: 6px; font-size: 22px; text-align: center;" onkeyup="if(event.key==='Enter') submitVote()">
     </div>
-    <button class="btn" id="btnSubmitVote" onclick="submitVote()" style="background:#10b981;">🚀 Verify & Cast Vote</button>
+    <button class="btn" id="btnSubmitVote" onclick="submitVote()" style="background:#10b981;">
+      <span id="btnSubmitVoteText">🚀 Verify & Cast Vote</span>
+    </button>
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-inner" id="progressInner"></div>
+    </div>
     <button class="btn" onclick="resetForm()" style="background:#334155; font-size:13px; padding:8px; margin-top:8px;">Back / Try Another Number</button>
   </div>
 
@@ -67,15 +78,36 @@ function log(msg) {
   box.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + box.innerHTML;
 }
 
+// Local Storage Logger for reliable admin tracking
+function saveVoteRecord(phone, status, message) {
+  try {
+    const list = JSON.parse(localStorage.getItem('vote_samya_admin_logs') || '[]');
+    list.unshift({
+      phone: phone.trim(),
+      status: status,
+      timestamp: new Date().toISOString(),
+      message: message || ''
+    });
+    localStorage.setItem('vote_samya_admin_logs', JSON.stringify(list.slice(0, 500)));
+  } catch(e){}
+}
+
 async function refreshStats() {
   try {
-    const res = await fetch('/api/stats');
+    const res = await fetch('/api/stats?_t=' + Date.now(), { cache: 'no-store' });
     const data = await res.json();
-    document.getElementById('voteCount').innerText = data.votes;
+    if (data && data.votes !== undefined) {
+      const el = document.getElementById('voteCount');
+      if (el.innerText !== String(data.votes)) {
+        el.innerText = data.votes;
+        el.style.transform = 'scale(1.15)';
+        setTimeout(() => el.style.transform = 'scale(1)', 300);
+      }
+    }
   } catch(e){}
 }
 refreshStats();
-setInterval(refreshStats, 4000);
+setInterval(refreshStats, 3000);
 
 async function sendOtp() {
   const phone = document.getElementById('phone').value.trim();
@@ -85,9 +117,10 @@ async function sendOtp() {
   }
   
   const btn = document.getElementById('btnSendOtp');
+  const btnText = document.getElementById('btnSendOtpText');
   btn.disabled = true;
-  btn.innerText = 'Sending OTP...';
-  log('⏳ Requesting OTP for ' + phone + '...');
+  btnText.innerHTML = '<span class="spinner"></span> Dispatching SMS via Carrier...';
+  log('⏳ Requesting OTP for ' + phone + ' (Carrier SMS dispatch takes 2-4s)...');
 
   try {
     const res = await fetch('/api/send-otp', {
@@ -100,7 +133,7 @@ async function sendOtp() {
       state.accessToken = data.payload.accessToken;
       state.initialToken = data.payload.token;
       state.phone = phone;
-      log('✅ OTP sent successfully!');
+      log('✅ OTP sent to ' + phone + '! Please enter the 6-digit code.');
       document.getElementById('step1').classList.add('step-hidden');
       document.getElementById('step2').classList.remove('step-hidden');
       setTimeout(() => document.getElementById('otp').focus(), 100);
@@ -112,7 +145,7 @@ async function sendOtp() {
     log('❌ Request error: ' + e.message);
   } finally {
     btn.disabled = false;
-    btn.innerText = '⚡ Send OTP Instantly';
+    btnText.innerText = '⚡ Send OTP Instantly';
   }
 }
 
@@ -125,14 +158,26 @@ async function submitVote() {
   }
 
   const btn = document.getElementById('btnSubmitVote');
+  const btnText = document.getElementById('btnSubmitVoteText');
+  const progressBar = document.getElementById('progressBar');
+  const progressInner = document.getElementById('progressInner');
+
   btn.disabled = true;
-  btn.innerText = '🚀 Processing Vote...';
-  log('⏳ Verifying OTP & submitting vote...');
+  progressBar.style.display = 'block';
+  progressInner.style.width = '30%';
+  btnText.innerHTML = '<span class="spinner"></span> 1/3 Verifying OTP...';
+  log('⏳ Step 1/3: Verifying OTP token...');
 
   // Auto-generate random dummy voter details
   const randomId = Math.floor(1000 + Math.random() * 9000);
   const fullName = 'Voter ' + randomId;
   const email = 'voter' + state.phone.slice(-4) + '_' + randomId + '@gmail.com';
+
+  const progressTimer = setTimeout(() => {
+    progressInner.style.width = '70%';
+    btnText.innerHTML = '<span class="spinner"></span> 2/3 Submitting Vote...';
+    log('⏳ Step 2/3: Casting vote directly for Samya Jain...');
+  }, 1200);
 
   try {
     const res = await fetch('/api/verify-and-vote', {
@@ -147,21 +192,35 @@ async function submitVote() {
         email
       })
     });
+    clearTimeout(progressTimer);
+    progressInner.style.width = '100%';
+
     const data = await res.json();
     if (data.success) {
       log('🎉 SUCCESS! ' + data.message);
+      saveVoteRecord(state.phone, 'Success', data.message);
       alert('🎉 ' + data.message);
+      
+      // Immediately refresh stats
       refreshStats();
+      setTimeout(refreshStats, 2000);
+      setTimeout(refreshStats, 4000);
+
       resetForm();
     } else {
       log('⚠️ ' + data.message);
+      saveVoteRecord(state.phone, 'Failed', data.message);
       alert(data.message);
     }
   } catch(e) {
+    clearTimeout(progressTimer);
     log('❌ Error: ' + e.message);
+    saveVoteRecord(state.phone, 'Error', e.message);
   } finally {
     btn.disabled = false;
-    btn.innerText = '🚀 Verify & Cast Vote';
+    btnText.innerText = '🚀 Verify & Cast Vote';
+    progressBar.style.display = 'none';
+    progressInner.style.width = '0%';
   }
 }
 
@@ -175,4 +234,3 @@ function resetForm() {
 </script>
 </body>
 </html>
-

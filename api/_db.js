@@ -45,7 +45,6 @@ function recordVote(phone, status = "Success", message = "") {
     message
   });
   
-  // Keep last 500 records
   if (inMemoryStore.history.length > 500) {
     inMemoryStore.history = inMemoryStore.history.slice(0, 500);
   }

@@ -14,9 +14,14 @@ const HEADERS = {
 };
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   try {
-    const response = await fetch(`${BASE_URL}/entries-list/?cityID=${CITY_ID}`, {
-      headers: HEADERS
+    const response = await fetch(`${BASE_URL}/entries-list/?cityID=${CITY_ID}&_ts=${Date.now()}`, {
+      headers: HEADERS,
+      cache: "no-store"
     });
     const data = await response.json();
     let votes = "N/A";
@@ -29,7 +34,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       candidate: TARGET_NAME,
       participantID: TARGET_PARTICIPANT_ID,
-      votes
+      votes,
+      timestamp: Date.now()
     });
   } catch (error) {
     return res.status(500).json({ candidate: TARGET_NAME, votes: "N/A", error: error.message });
