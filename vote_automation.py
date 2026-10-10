@@ -86,7 +86,15 @@ def cast_vote(participant_id, token):
     """Step 4: Cast Vote"""
     return make_request(f"vote/{participant_id}", method="POST", token=token)
 
-def run_single_vote(phone, name, email):
+import random
+
+def run_single_vote(phone, name=None, email=None):
+    rand_id = random.randint(1000, 9999)
+    if not name:
+        name = f"Voter {rand_id}"
+    if not email:
+        email = f"voter{phone[-4:] if len(phone)>=4 else rand_id}_{rand_id}@gmail.com"
+
     print("\n" + "="*50)
     print(f"🎯 Target Candidate: {TARGET_NAME} (ID: {TARGET_PARTICIPANT_ID})")
     print(f"📊 Current Votes: {get_current_votes()}")
@@ -123,7 +131,7 @@ def run_single_vote(phone, name, email):
     
     # 3. Register voter if not already registered
     if next_screen in ["voter-signup", "register"] or not user_token:
-        print(f"\n[3/4] 📝 Registering voter ({name} / {email})...")
+        print(f"\n[3/4] 📝 Auto-registering voter ({name} / {email})...")
         reg_resp = register_voter(name, email, user_token)
         if reg_resp.get("status"):
             user_token = reg_resp.get("payload", {}).get("token") or user_token
@@ -157,16 +165,8 @@ def main():
         if phone.lower() == 'q' or not phone:
             print("Exiting.")
             break
-        
-        name = input("👤 Enter Full Name (default: Voter): ").strip()
-        if not name:
-            name = "Voter"
             
-        email = input("✉️ Enter Email (default: testvoter@gmail.com): ").strip()
-        if not email:
-            email = f"voter{phone[-4:]}@gmail.com"
-            
-        run_single_vote(phone, name, email)
+        run_single_vote(phone)
         
         again = input("\n🔁 Do you want to cast another vote with another number? (y/n): ").strip().lower()
         if again != 'y':
@@ -175,3 +175,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

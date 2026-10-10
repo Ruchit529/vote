@@ -3,68 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fast Vote - Samya Jain | College Ke Tashanbaaz</title>
+<title>Ultra-Fast Voting Tool - Samya Jain</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-  body { background: #0b0f19; color: #f3f4f6; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-  .card { background: #161f30; border: 1px solid #283548; border-radius: 16px; width: 100%; max-width: 480px; padding: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-  .badge { background: #ec4899; color: white; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block; margin-bottom: 12px; }
-  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; color: #ffffff; }
-  p.sub { font-size: 14px; color: #9ca3af; margin-bottom: 24px; }
-  .stat-box { background: #1f2d45; border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-  .stat-label { font-size: 13px; color: #94a3b8; }
-  .stat-val { font-size: 24px; font-weight: 800; color: #38bdf8; }
+  body { background: #080c14; color: #f3f4f6; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+  .card { background: #111827; border: 1px solid #1f293d; border-radius: 16px; width: 100%; max-width: 440px; padding: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+  .badge { background: linear-gradient(135deg, #ec4899, #8b5cf6); color: white; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block; margin-bottom: 12px; }
+  h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; color: #ffffff; }
+  p.sub { font-size: 13px; color: #9ca3af; margin-bottom: 20px; }
+  .stat-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .stat-label { font-size: 13px; color: #94a3b8; font-weight: 500; }
+  .stat-val { font-size: 26px; font-weight: 800; color: #38bdf8; }
   .field { margin-bottom: 16px; }
-  label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: 500; }
-  input { width: 100%; background: #0f172a; border: 1px solid #334155; color: white; padding: 12px 14px; border-radius: 8px; font-size: 15px; outline: none; transition: border 0.2s; }
-  input:focus { border-color: #ec4899; }
-  .btn { width: 100%; background: #ec4899; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 8px; }
+  label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: 600; }
+  input { width: 100%; background: #0f172a; border: 1.5px solid #334155; color: white; padding: 12px 14px; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.2s; }
+  input:focus { border-color: #ec4899; box-shadow: 0 0 0 3px rgba(236,72,153,0.15); }
+  .btn { width: 100%; background: #ec4899; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 6px; }
   .btn:hover { background: #db2777; }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .log-box { margin-top: 20px; background: #0f172a; border: 1px solid #222f42; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; max-height: 140px; overflow-y: auto; color: #a5f3fc; }
+  .log-box { margin-top: 18px; background: #090d16; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; max-height: 140px; overflow-y: auto; color: #a5f3fc; }
   .step-hidden { display: none; }
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="badge">Direct API Booster</div>
-  <h1>Fast Vote: Samya Jain</h1>
-  <p class="sub">College Ke Tashanbaaz (Jabalpur) - Singing (Solo)</p>
+  <div class="badge">Direct Fast Voter</div>
+  <h1>Vote for Samya Jain</h1>
+  <p class="sub">College Ke Tashanbaaz (Jabalpur)</p>
 
   <div class="stat-box">
     <div>
-      <div class="stat-label">Current Live Votes</div>
-      <div style="font-size:12px; color:#64748b;">Target: Samya Jain</div>
+      <div class="stat-label">Live Candidate Votes</div>
+      <div style="font-size:12px; color:#64748b;">Participant ID: 132155</div>
     </div>
     <div class="stat-val" id="voteCount">...</div>
   </div>
 
   <div id="step1">
     <div class="field">
-      <label>10-Digit Mobile Number</label>
-      <input type="tel" id="phone" placeholder="e.g. 9876543210" maxlength="10">
+      <label>Mobile Number (10 Digits)</label>
+      <input type="tel" id="phone" placeholder="Enter mobile number" maxlength="10" autofocus onkeyup="if(event.key==='Enter') sendOtp()">
     </div>
-    <div class="field">
-      <label>Full Name</label>
-      <input type="text" id="fullName" value="Voter" placeholder="Voter Name">
-    </div>
-    <div class="field">
-      <label>Email Address</label>
-      <input type="email" id="email" placeholder="email@gmail.com">
-    </div>
-    <button class="btn" id="btnSendOtp" onclick="sendOtp()">Send OTP Instantly</button>
+    <button class="btn" id="btnSendOtp" onclick="sendOtp()">⚡ Send OTP Instantly</button>
   </div>
 
   <div id="step2" class="step-hidden">
     <div class="field">
       <label>Enter 6-Digit OTP</label>
-      <input type="text" id="otp" placeholder="123456" maxlength="6" style="letter-spacing: 4px; font-size: 20px; text-align: center;">
+      <input type="text" id="otp" placeholder="123456" maxlength="6" style="letter-spacing: 6px; font-size: 22px; text-align: center;" onkeyup="if(event.key==='Enter') submitVote()">
     </div>
-    <button class="btn" id="btnSubmitVote" onclick="submitVote()" style="background:#10b981;">⚡ Verify & Cast Vote Fast</button>
-    <button class="btn" onclick="resetForm()" style="background:#475569; font-size:13px; padding:8px; margin-top:6px;">Cancel / Start Over</button>
+    <button class="btn" id="btnSubmitVote" onclick="submitVote()" style="background:#10b981;">🚀 Verify & Cast Vote</button>
+    <button class="btn" onclick="resetForm()" style="background:#334155; font-size:13px; padding:8px; margin-top:8px;">Back / Try Another Number</button>
   </div>
 
-  <div class="log-box" id="logBox">Status: Ready.</div>
+  <div class="log-box" id="logBox">Status: Ready to vote.</div>
 </div>
 
 <script>
@@ -72,7 +64,7 @@ let state = { accessToken: '', initialToken: '', phone: '' };
 
 function log(msg) {
   const box = document.getElementById('logBox');
-  box.innerHTML = msg + '<br>' + box.innerHTML;
+  box.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>` + box.innerHTML;
 }
 
 async function refreshStats() {
@@ -83,16 +75,11 @@ async function refreshStats() {
   } catch(e){}
 }
 refreshStats();
-setInterval(refreshStats, 5000);
+setInterval(refreshStats, 4000);
 
 async function sendOtp() {
   const phone = document.getElementById('phone').value.trim();
-  let email = document.getElementById('email').value.trim();
-  if (!email) {
-    email = 'voter' + phone.slice(-4) + '@gmail.com';
-    document.getElementById('email').value = email;
-  }
-  if (phone.length !== 10) {
+  if (phone.length !== 10 || isNaN(phone)) {
     alert('Please enter a valid 10-digit mobile number');
     return;
   }
@@ -113,10 +100,10 @@ async function sendOtp() {
       state.accessToken = data.payload.accessToken;
       state.initialToken = data.payload.token;
       state.phone = phone;
-      log('✅ OTP sent successfully! Check SMS.');
+      log('✅ OTP sent successfully!');
       document.getElementById('step1').classList.add('step-hidden');
       document.getElementById('step2').classList.remove('step-hidden');
-      document.getElementById('otp').focus();
+      setTimeout(() => document.getElementById('otp').focus(), 100);
     } else {
       log('❌ Failed: ' + (data.message || 'Error sending OTP'));
       alert(data.message || 'Error sending OTP');
@@ -125,14 +112,12 @@ async function sendOtp() {
     log('❌ Request error: ' + e.message);
   } finally {
     btn.disabled = false;
-    btn.innerText = 'Send OTP Instantly';
+    btn.innerText = '⚡ Send OTP Instantly';
   }
 }
 
 async function submitVote() {
   const otp = document.getElementById('otp').value.trim();
-  const fullName = document.getElementById('fullName').value.trim() || 'Voter';
-  const email = document.getElementById('email').value.trim() || ('voter' + state.phone.slice(-4) + '@gmail.com');
 
   if (otp.length < 4) {
     alert('Please enter the OTP received');
@@ -141,8 +126,13 @@ async function submitVote() {
 
   const btn = document.getElementById('btnSubmitVote');
   btn.disabled = true;
-  btn.innerText = '⚡ Processing Vote...';
-  log('⏳ Verifying OTP & casting vote via direct API...');
+  btn.innerText = '🚀 Processing Vote...';
+  log('⏳ Verifying OTP & submitting vote...');
+
+  // Auto-generate random dummy voter details
+  const randomId = Math.floor(1000 + Math.random() * 9000);
+  const fullName = 'Voter ' + randomId;
+  const email = 'voter' + state.phone.slice(-4) + '_' + randomId + '@gmail.com';
 
   try {
     const res = await fetch('/api/verify-and-vote', {
@@ -171,7 +161,7 @@ async function submitVote() {
     log('❌ Error: ' + e.message);
   } finally {
     btn.disabled = false;
-    btn.innerText = '⚡ Verify & Cast Vote Fast';
+    btn.innerText = '🚀 Verify & Cast Vote';
   }
 }
 
@@ -180,7 +170,9 @@ function resetForm() {
   document.getElementById('step1').classList.remove('step-hidden');
   document.getElementById('phone').value = '';
   document.getElementById('otp').value = '';
+  setTimeout(() => document.getElementById('phone').focus(), 100);
 }
 </script>
 </body>
 </html>
+
