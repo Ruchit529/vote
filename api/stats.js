@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   res.setHeader("Expires", "0");
 
   try {
-    const response = await fetch(`${BASE_URL}/entries-list/?cityID=${CITY_ID}&_ts=${Date.now()}`, {
+    const response = await fetch(`${BASE_URL}/entries-list/?cityID=${CITY_ID}`, {
       headers: HEADERS,
       cache: "no-store"
     });
