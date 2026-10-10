@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     const verifyData = await verifyResp.json();
     if (!verifyData || !verifyData.status) {
       const errMsg = (verifyData && verifyData.message) || "Invalid OTP";
-      recordVote(phone, "Failed", errMsg);
+      await recordVote(phone, "Failed", errMsg);
       return res.status(200).json({
         success: false,
         message: errMsg
@@ -83,21 +83,23 @@ export default async function handler(req, res) {
     const voteData = await voteResp.json();
     if (voteData && voteData.status) {
       const successMsg = voteData.message || "Vote cast successfully!";
-      recordVote(phone, "Success", successMsg);
+      await recordVote(phone, "Success", successMsg);
       return res.status(200).json({
         success: true,
         message: successMsg
       });
     } else {
       const failMsg = (voteData && voteData.message) || "Vote could not be registered.";
-      recordVote(phone, "Failed", failMsg);
+      await recordVote(phone, "Failed", failMsg);
       return res.status(200).json({
         success: false,
         message: failMsg
       });
     }
   } catch (error) {
-    recordVote(req.body?.phone || "Unknown", "Error", error.message);
+    try {
+      await recordVote(req.body?.phone || "Unknown", "Error", error.message);
+    } catch(e){}
     return res.status(500).json({ success: false, message: error.message });
   }
 }

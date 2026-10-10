@@ -1,7 +1,5 @@
-const fs = require('fs');
-const path = require('path');
-
-const DB_FILE = path.join('/tmp', 'vote_counter_db.json');
+const CLOUD_DB_ID = "ff808181a09d98f701a12556a82f34d5";
+const CLOUD_DB_URL = `https://api.restful-api.dev/objects/${CLOUD_DB_ID}`;
 
 let inMemoryStore = {
   totalVotes: 0,
@@ -9,28 +7,39 @@ let inMemoryStore = {
   history: []
 };
 
-function loadDb() {
+async function getStats() {
   try {
-    if (fs.existsSync(DB_FILE)) {
-      const content = fs.readFileSync(DB_FILE, 'utf8');
-      const data = JSON.parse(content);
-      inMemoryStore = { ...inMemoryStore, ...data };
+    const res = await fetch(CLOUD_DB_URL, {
+      headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0" },
+      cache: "no-store"
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.data) {
+        inMemoryStore = {
+          totalVotes: json.data.totalVotes || 0,
+          phoneVotes: json.data.phoneVotes || {},
+          history: Array.isArray(json.data.history) ? json.data.history : []
+        };
+      }
     }
   } catch (e) {
-    console.error("Failed to load db:", e.message);
+    console.error("Cloud DB read error:", e.message);
   }
   return inMemoryStore;
 }
 
-function recordVote(phone, status = "Success", message = "") {
-  loadDb();
+async function recordVote(phone, status = "Success", message = "") {
   const cleanPhone = (phone || "Unknown").toString().trim();
+  
+  // 1. Fetch latest state
+  await getStats();
   
   if (!inMemoryStore.phoneVotes[cleanPhone]) {
     inMemoryStore.phoneVotes[cleanPhone] = { count: 0, lastVoted: null };
   }
   
-  if (status === "Success") {
+  if (status === "Success" || status === "success") {
     inMemoryStore.totalVotes += 1;
     inMemoryStore.phoneVotes[cleanPhone].count += 1;
   }
@@ -45,21 +54,29 @@ function recordVote(phone, status = "Success", message = "") {
     message
   });
   
-  if (inMemoryStore.history.length > 500) {
-    inMemoryStore.history = inMemoryStore.history.slice(0, 500);
+  if (inMemoryStore.history.length > 300) {
+    inMemoryStore.history = inMemoryStore.history.slice(0, 300);
   }
   
+  // 2. Persist to Cloud DB
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(inMemoryStore, null, 2), 'utf8');
+    await fetch(CLOUD_DB_URL, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0"
+      },
+      body: JSON.stringify({
+        name: "samya_jain_vote_portal_db_v1",
+        data: inMemoryStore
+      })
+    });
   } catch (e) {
-    console.error("Failed to write db:", e.message);
+    console.error("Cloud DB write error:", e.message);
   }
   
   return inMemoryStore;
-}
-
-function getStats() {
-  return loadDb();
 }
 
 module.exports = { recordVote, getStats };
