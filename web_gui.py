@@ -234,14 +234,8 @@ function resetForm() {
 </html>
 """
 
-class FastVoteHandler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == "/" or self.path == "/index.html":
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(HTML_PAGE.encode("utf-8"))
 import os
+
 
 VOTE_LOG_FILE = "vote_log.json"
 
@@ -394,4 +388,3 @@ if __name__ == "__main__":
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nStopping server.")
-#.......
